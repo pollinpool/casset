@@ -1,6 +1,4 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
+# Arquivo: 01-workflow-config.yml
 name: Node.js CI
 
 on:
@@ -9,23 +7,27 @@ on:
   pull_request:
     branches: [ "main" ]
 
+# Arquivo: 02-strategy-node.yml
 jobs:
-  build:
+    build:
+  
+      runs-on: ubuntu-latest
+  
+      strategy:
+        matrix:
+          node-version: [18.x, 20.x, 22.x]  # Definindo múltiplas versões do Node.js
 
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
-    steps:
-    - uses: actions/checkout@v4
+# Arquivo: 03-setup-node-cache.yml
+steps:
+    - uses: actions/checkout@v4  # Baixa o código do repositório
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
-    - run: npm test
+        cache: 'npm'  # Cacheando dependências npm para otimizar o tempo de execução
+
+# Arquivo: 04-install-dependencies.yml
+- run: npm ci  # Instala as dependências sem modificar o package-lock.json
+
+# Arquivo: 06-run-tests.yml
+- run: npm test  # Executa os testes definidos no package.json
