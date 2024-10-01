@@ -1,0 +1,17 @@
+name: Security Check
+
+on: [push]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    - name: Install security tools
+      run: npm install @openzeppelin/test-helpers
+
+    - name: Run security checks
+      run: npm run security

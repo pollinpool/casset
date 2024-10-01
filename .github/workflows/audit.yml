@@ -1,0 +1,17 @@
+name: Audit Contracts
+
+on: [push]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    - name: Install audit tools
+      run: npm install solidity-coverage
+
+    - name: Run audit
+      run: npm run audit
