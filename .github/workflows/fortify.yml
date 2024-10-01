@@ -1,0 +1,75 @@
+# Arquivo: node.js.yml
+# Este workflow utiliza ações que não são certificadas pelo GitHub. Elas são fornecidas por terceiros e estão sujeitas a termos de serviço, políticas de privacidade e documentação de suporte separados.
+
+################################################################################################################################################
+# Fortify Application Security oferece soluções para empoderar práticas de DevSecOps, habilitar a transformação na nuvem e proteger sua cadeia #
+# de suprimentos de software. Para saber mais sobre o Fortify, inicie um teste gratuito ou entre em contato com a nossa equipe de vendas em     #
+# fortify.com. Use este workflow inicial como base para integrar o Fortify Application Security Testing em seus workflows de GitHub. Este       #
+# template demonstra as etapas para empacotar o código+dependências, iniciar uma varredura e, opcionalmente, importar vulnerabilidades SAST no  #
+# GitHub Security Code Scanning Alerts. Informações adicionais estão disponíveis nos comentários do workflow e na documentação dos produtos     #
+# Fortify. Se precisar de assistência adicional, entre em contato com o suporte do Fortify.                                                    #
+################################################################################################################################################
+
+name: Fortify AST Scan
+
+# Personalização dos gatilhos de acordo com o processo DevSecOps
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '23 17 * * 4'
+  workflow_dispatch:
+
+jobs:
+  Fortify-AST-Scan:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      # Verifica o código-fonte
+      - name: Check Out Source Code
+        uses: actions/checkout@v4
+
+      # Configura o ambiente Java
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      # Executa o SAST scan via Fortify on Demand/Fortify Hosted/Software Security Center
+      - name: Run FoD SAST Scan
+        uses: fortify/github-action@a92347297e02391b857e7015792cd1926a4cd418
+        with:
+          sast-scan: true
+        env:
+          ### Configuração necessária ao integrar com Fortify on Demand
+          FOD_URL: https://ams.fortify.com
+          FOD_TENANT: ${{secrets.FOD_TENANT}}
+          FOD_USER: ${{secrets.FOD_USER}}
+          FOD_PASSWORD: ${{secrets.FOD_PAT}}
+          ### Configuração opcional ao integrar com Fortify on Demand
+          # EXTRA_PACKAGE_OPTS: -oss                       # Opções extras para 'scancentral package', como '-oss' se
+                                                           # Debricked SCA scan estiver habilitado no Fortify on Demand
+          # EXTRA_FOD_LOGIN_OPTS: --socket-timeout=60s     # Opções extras para 'fcli fod session login'
+          # FOD_RELEASE: MyApp:MyRelease                   # Nome do release no FoD, padrão: <org>/<repo>:<branch>; pode
+                                                           # substituir o nome do app+release pelo ID numérico do release
+          # DO_WAIT: true                                  # Aguarda a conclusão do scan, implícito se 'DO_EXPORT: true'
+          # DO_EXPORT: true                                # Exporta os resultados do SAST para o painel de Code Scanning do GitHub
+          ### Configuração necessária ao integrar com Fortify Hosted / Software Security Center & ScanCentral
+          # SSC_URL: ${{secrets.SSC_URL}}                            # URL do SSC
+          # SSC_TOKEN: ${{secrets.SSC_TOKEN}}                        # SSC CIToken ou AutomationToken
+          # SC_SAST_TOKEN: ${{secrets.SC_SAST_TOKEN}}                # Token de autenticação do cliente ScanCentral SAST
+          # SC_SAST_SENSOR_VERSION: ${{vars.SC_SAST_SENSOR_VERSION}} # Versão do sensor para rodar o scan;
+                                                                     # geralmente definido como uma variável de organização ou repositório
+          ### Configuração opcional ao integrar com Fortify Hosted / Software Security Center & ScanCentral
+          # EXTRA_SC_SAST_LOGIN_OPTS: --socket-timeout=60s # Opções extras para 'fcli sc-sast session login'
+          # SSC_APPVERSION: MyApp:MyVersion                # Versão da aplicação no SSC, padrão: <org>/<repo>:<branch>
+          # EXTRA_PACKAGE_OPTS: -bv myCustomPom.xml        # Opções extras para 'scancentral package'
+          # DO_WAIT: true                                  # Aguarda a conclusão do scan, implícito se 'DO_EXPORT: true'
+          # DO_EXPORT: true                                # Exporta os resultados do SAST para o painel de Code Scanning do GitHub
